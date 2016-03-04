@@ -45,5 +45,28 @@ ggplot(choro, aes(long, lat)) +
   scale_colour_manual(name="", values = ("Superfund"= "yellow")) + 
   theme(legend.key=element_rect(fill="black")) # change background superfund legend to black
 
+# Linear Regression -----------------------------------------------------------------------------------
 
+# calculate number of Superfund sites per state
+superfund.by.state <- superfund %>%
+  group_by(St) %>% # St=state
+  summarise(count=n())
+
+# convert state abbreviations to state name and make lower case from built-in datasets
+# also need to rename "DC"
+superfund.by.state$region <- tolower(state.name[match(superfund.by.state$St, state.abb)])
+superfund.by.state[superfund.by.state$St=="DC",]$region <- "district of columbia"
+
+# merge income data and number of Superfund sites by state
+super.income.st <- merge(income.by.state, superfund.by.state, by = "region") 
+
+# plot linear regression and scatterplot
+ggplot(super.income.st, aes(med_income, count)) +
+  geom_point() +
+  geom_smooth(method='lm') +
+  labs(x="Median Income ($)", y="Number of Superfund Sites", 
+       title="Median Income by State vs Number of Superfund Sites") 
+
+cor(super.income.st$med_income, super.income.st$count) 
+# correlation = 0.1937022 which is a weak positive correlation
 
